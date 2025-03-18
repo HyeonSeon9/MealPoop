@@ -5,6 +5,7 @@ spring:
 discord:
   bot:
     token: ${BOT_TOKEN}
+    prefix: '!'
 dnf:
   token: ${DNF_TOKEN}
   api:

@@ -11,10 +11,18 @@ public class BotConfiguration {
     @Value("${discord.bot.token}")
     private String token;
 
+    @Value("${discord.bot.prefix}")
+    private String commandPrefix;
+
     @Bean
-    GatewayDiscordClient gatewayDiscordClient() {
+    public GatewayDiscordClient gatewayDiscordClient() {
         return DiscordClient.create(token)
                 .login()
                 .block();
+    }
+
+    @Bean
+    public String commandPrefix() {
+        return commandPrefix;
     }
 }
