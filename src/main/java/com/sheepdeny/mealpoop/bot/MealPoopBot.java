@@ -43,8 +43,6 @@ public class MealPoopBot {
                         .filter(e -> !e.getMessage().getAuthor().map(User::isBot).orElse(true))
                         .flatMap(this::handle))
                 .subscribe();
-
-        client.onDisconnect().block();
     }
 
     private Mono<Void> handle(MessageCreateEvent event) {
