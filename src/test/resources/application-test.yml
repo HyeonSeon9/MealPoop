@@ -4,8 +4,9 @@ spring:
 
 discord:
   bot:
-    token: ${BOT_TOKEN}
+    token: "valid-test-token"
+
 dnf:
-  token: ${DNF_TOKEN}
+  token: "valid-dnf-test-token"
   api:
     url: 'https://api.neople.co.kr'
