@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: 'mealPoop'
+
+discord:
+  bot:
+    token: ${{BOT_TOKEN}}
+dnf:
+  token: ${{DNF_TOKEN}}
+  api:
+    url: 'https://api.neople.co.kr'
