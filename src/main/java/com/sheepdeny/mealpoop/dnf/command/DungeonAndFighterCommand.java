@@ -11,26 +11,29 @@ import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DungeonAndFighterCommand implements Command {
 
     private final DungeonAndFighterService service;
+    private final String commandPrefix;
 
     @Override
     public String getName() {
-        return "던";
+        return "dnf";
     }
 
     @Override
     public List<String> getDescriptions() {
         return List.of(
-                "`!던 캐릭터 <서버명-한글> <캐릭터명>` - 캐릭터 정보를 조회합니다"
+                String.format("`%s%s 캐릭터 <서버명-한글> <캐릭터명>` - 캐릭터 정보를 조회합니다", commandPrefix, getName())
         );
     }
 
@@ -40,7 +43,7 @@ public class DungeonAndFighterCommand implements Command {
         String content = message.getContent();
         Mono<MessageChannel> channelMono = message.getChannel();
 
-        String[] parts = content.substring(1).toLowerCase().split("\\s+");
+        String[] parts = content.substring(1).split(" ");
         String command = parts[1];
 
         switch (command){
@@ -56,6 +59,10 @@ public class DungeonAndFighterCommand implements Command {
                                 );
                             }
                             CharacterInfo character = response.getRows().get(0);
+//                            String userMention = message.getAuthor()
+//                                    .map(User::getMention)
+//                                    .orElse("Unknown User");
+
                             return channelMono.flatMap(channel ->
                                     channel.createMessage(createCharacterEmbed(character))
                             );
@@ -65,11 +72,12 @@ public class DungeonAndFighterCommand implements Command {
                                         channel.createMessage("❌ 존재하지 않는 서버명입니다.")
                                 )
                         )
-//                        .onErrorResume(Exception.class, e ->
-//                                channelMono.flatMap(channel ->
-//                                        channel.createMessage("⚠️ 캐릭터 정보를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.")
-//                                )
-//                        )
+                        .onErrorResume(Exception.class, e -> {
+                            log.error("캐릭터 정보를 불러오는 중 오류 발생", e); // 로깅 추가
+                            return channelMono.flatMap(channel ->
+                                    channel.createMessage("⚠️ 캐릭터 정보를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.")
+                            );
+                        })
                         .then();
             default:
                 return Mono.empty();

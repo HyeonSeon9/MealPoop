@@ -29,11 +29,13 @@ public class DungeonAndFighterService {
             return Mono.error(new NotFoundServerName("정확한 서버 이름을 입력하세요"));
         }
 
-        String requestUrl = apiUrl + "/df/servers/" + engServerName + "/characters?characterName=" + characterName + "&apikey=" + apikey;
-
-        return webClientBuilder.build()
+        return webClientBuilder.baseUrl(apiUrl).build()
                 .get()
-                .uri(requestUrl)
+                .uri(uriBuilder -> uriBuilder
+                        .path("/df/servers/{server}/characters")
+                        .queryParam("characterName",characterName)
+                        .queryParam("apikey",apikey)
+                        .build(engServerName))
                 .retrieve()
                 .bodyToMono(CharactersResponse.class)
                 .onErrorResume(e -> Mono.error(new RuntimeException("⚠️ API 호출 중 오류가 발생했습니다.")));

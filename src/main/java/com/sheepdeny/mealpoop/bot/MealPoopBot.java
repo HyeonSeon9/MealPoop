@@ -4,7 +4,6 @@ package com.sheepdeny.mealpoop.bot;
 import com.sheepdeny.mealpoop.bot.command.Command;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import jakarta.annotation.PostConstruct;
@@ -17,12 +16,13 @@ import reactor.core.publisher.Mono;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MealPoopBot {
+
+    private final String commandPrefix;
 
     @Autowired
     private GatewayDiscordClient client;
@@ -40,27 +40,22 @@ public class MealPoopBot {
 
         client.on(MessageCreateEvent.class)
                 .flatMap(event -> Mono.just(event)
-                        .filter(e-> !e.getMessage().getAuthor().map(User::isBot).orElse(true))
+                        .filter(e -> !e.getMessage().getAuthor().map(User::isBot).orElse(true))
                         .flatMap(this::handle))
                 .subscribe();
+
+        client.onDisconnect().block();
     }
 
     private Mono<Void> handle(MessageCreateEvent event) {
         Message message = event.getMessage();
         String content = message.getContent();
-        Member member = event.getMember().orElse(null);
 
-        if (Objects.nonNull(member)) {
-            log.info("request user : {}",member.getUsername());
-        }
-
-
-
-        if (!content.startsWith("!")) {
+        if (!content.startsWith(commandPrefix)) {
             return Mono.empty();
         }
 
-        String[] parts = content.substring(1).split(" ", 2);
+        String[] parts = content.substring(1).split(" ");
         String commandName = parts[0].toLowerCase();
         Command command = commandMap.get(commandName);
 
@@ -68,6 +63,6 @@ public class MealPoopBot {
             return command.execute(event);
         }
 
-        return Mono.empty();
+        return commandMap.get("help").execute(event);
     }
 }
